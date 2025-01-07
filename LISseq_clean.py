@@ -27,7 +27,7 @@ def main(arg_list: list[str] | None = None):
     for seq in in_seq:
        if "N" not in seq.seq:
         new_seq = seq[len(args.ltr):]
-        polyA_pos = new_seq.seq.find("AAAAAAA")
+        polyA_pos = new_seq.seq.find("AAAAA")
         if polyA_pos != -1:
            new_seq = new_seq[:polyA_pos]
 
