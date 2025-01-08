@@ -1,21 +1,25 @@
-import pytest
-from Bio import SeqIO
+import filecmp
+from Bio import SeqIO, SeqRecord
 import LISseq_clean
 
-def test_read_write(default_io_files, tmp_path):
-    LISseq_clean.main(default_io_files)
-    assert len(list(tmp_path.iterdir())) == 1
+def test_fing_fqgz(test_input_dir):
+    names = set(filename.stem for filename in LISseq_clean._find_fqgz(test_input_dir))
+    assert names == {"0.fq","1.fq","2.fq","3.fq"}
 
-def test_default_ltr(default_io_files, default_ltr):
-    assert LISseq_clean.parse_args(default_io_files).ltr == default_ltr
+def test_correct_fqgz(correct_fqgz):
+    test_seq = LISseq_clean._parse_fqgz(correct_fqgz)
+    for read in test_seq:
+        assert type(read) == SeqRecord.SeqRecord
 
-def test_custom_ltr(cmd_with_custom_ltr,custom_ltr):
-    assert LISseq_clean.parse_args(cmd_with_custom_ltr).ltr == custom_ltr
+def test_incorrect_fqgz(incorrect_fqgz):
+    test_seq = LISseq_clean._parse_fqgz(incorrect_fqgz)
+    for read in test_seq:
+        assert read == None
 
-def test_out_file_contents(default_io_files, tmp_path, correct_output_path):
-    LISseq_clean.main(default_io_files)
-    expected_out = SeqIO.parse(f"{correct_output_path}", format="fastq")
-    expected_ids = [seq.id for seq in expected_out]
-    tested_out = SeqIO.parse(f"{tmp_path}/test_out.fastq", format="fastq")
-    tested_ids = [seq.id for seq in tested_out]
-    assert expected_ids == tested_ids
+def test_main_function(default_test_args, expected_output_path, tmp_path):
+    LISseq_clean.main(default_test_args)
+    for i in range(3):
+        with open(f"{tmp_path}/{i}.fq_clean.fq", mode="r") as test_file, open(f"{expected_output_path}/{i}.fq_clean.fq", mode="r") as exp_file:
+            test_lines = test_file.readlines()
+            exp_lines = exp_file.readlines()
+            assert test_lines == exp_lines

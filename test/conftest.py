@@ -1,12 +1,24 @@
 import pytest
 
 @pytest.fixture
-def default_io_files(tmp_path):
-    return ["test/test.fastq", f"{tmp_path}/test_out.fastq"]
+def test_input_dir():
+    return "test/test_input"
 
 @pytest.fixture
-def cmd_with_custom_ltr(tmp_path):
-    return ["test/test.fastq", f"{tmp_path}/test_out.fastq", "-ltr", "CCCCCC"]
+def correct_fqgz():
+    return "test/test_input/0.fq.gz"
+
+@pytest.fixture
+def incorrect_fqgz():
+    return "test/test_input/3.fq.gz"
+
+@pytest.fixture
+def default_test_args(tmp_path):
+    return ["test/test_input", f"{tmp_path}"]
+
+@pytest.fixture
+def expected_output_path():
+    return "test/expected_output/"
 
 @pytest.fixture
 def custom_ltr():
@@ -16,6 +28,3 @@ def custom_ltr():
 def default_ltr():
     return "GGAGTGAATTAGCCCTTCCA"
 
-@pytest.fixture
-def correct_output_path():
-    return "test/test_out.fastq"
