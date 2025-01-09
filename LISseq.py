@@ -11,6 +11,8 @@ Typical usage example:
 import argparse
 import pathlib
 import gzip
+import shutil
+import subprocess
 from Bio import SeqIO, SeqRecord, Seq
 
 
@@ -22,12 +24,18 @@ def _parse_args(arg_list: list[str] | None):
     parser.add_argument("-A", type=int, default=5)
     parser.add_argument("-q", type=int, default=20)
     parser.add_argument("-l", type=int, default=15)
+    parser.add_argument("-idx", type=str, default="GRCh38_noalt_as")
     return parser.parse_args(arg_list)
 
 
 def _find_fqgz(dir: str) -> list:
     in_path = pathlib.Path(dir)
     return list(in_path.glob("**/*.fq.gz"))
+
+
+def _find_fq(dir: str) -> list:
+    in_path = pathlib.Path(dir)
+    return list(in_path.glob("**/*.fq"))
 
 
 def _parse_fqgz(input_file_path: pathlib.Path):
@@ -60,7 +68,36 @@ def _save_clean_reads(read_list: list, out_dir):
     SeqIO.write(read_list, out_dir, format="fastq")
 
 
-def _cleanup(args):
+def _check_bowtie2(path:str = None):
+    return shutil.which("bowtie2", path=path)
+
+
+def _check_hg38_index(idx_dir):
+    idx_list = list(pathlib.Path(idx_dir).glob("*.bt2"))
+    if len(idx_list) > 0:
+        return idx_list[0].name.split(".")[0]
+    else:
+        return ""
+
+
+def _bowtie_map(clean_fq_file:pathlib.Path, idx_dir:str, idx_name:str, out_dir:str):
+    map_cmd = [
+        "bowtie2",
+        "-x",
+        f"{idx_dir}/{idx_name}",
+        "-U",
+        "-q",
+        f"{clean_fq_file}",
+        "-S",
+        f"{out_dir}/{clean_fq_file.stem}.sam",
+    ]
+    print(map_cmd)
+    result = subprocess.run(map_cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise Exception(result.stderr)
+
+
+def _cleanup_reads(args):
     in_fqgzs = _find_fqgz(args.input_dir)
     print(f"Found {len(in_fqgzs)} .fq.gz files in {args.input_dir}")
     counter = 1
@@ -77,9 +114,19 @@ def _cleanup(args):
         counter += 1
 
 
+def _map_IS(args):
+    in_fqs = _find_fq(args.output_dir)
+    if _check_bowtie2 != None:
+        idx_name = _check_hg38_index(args.idx)
+        if idx_name != "":
+            for clean_fq in in_fqs:
+                _bowtie_map(clean_fq, args.idx, idx_name, args.output_dir)
+
+
 def main(arg_list: list[str] | None = None):
     args = _parse_args(arg_list)
-    _cleanup(args)
+    _cleanup_reads(args)
+    _map_IS(args)
 
 
 if __name__ == "__main__":

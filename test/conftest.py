@@ -13,6 +13,22 @@ def incorrect_fqgz():
     return "test/test_input/3/3.fq.gz"
 
 @pytest.fixture
+def syspath_no_bowtie():
+    return "/usr/bin"
+
+@pytest.fixture
+def hg38idx_default_dir():
+    return "GRCh38_noalt_as"
+
+@pytest.fixture
+def hg38idx_nonexistant_dir():
+    return "foo"
+
+@pytest.fixture
+def hg38idx_wrong_dir():
+    return "test"
+
+@pytest.fixture
 def default_test_args(tmp_path):
     return ["test/test_input", f"{tmp_path}"]
 
