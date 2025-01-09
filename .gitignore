@@ -1,3 +1,6 @@
+#Hg38 genome index
+GRCh38_noalt_as/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

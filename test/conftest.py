@@ -2,15 +2,15 @@ import pytest
 
 @pytest.fixture
 def test_input_dir():
-    return "test/test_input"
+    return "test/test_input/"
 
 @pytest.fixture
 def correct_fqgz():
-    return "test/test_input/0.fq.gz"
+    return "test/test_input/0/0.fq.gz"
 
 @pytest.fixture
 def incorrect_fqgz():
-    return "test/test_input/3.fq.gz"
+    return "test/test_input/3/3.fq.gz"
 
 @pytest.fixture
 def default_test_args(tmp_path):

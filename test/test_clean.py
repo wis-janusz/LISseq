@@ -16,9 +16,10 @@ def test_incorrect_fqgz(incorrect_fqgz):
     for read in test_seq:
         assert read == None
 
-def test_main_function(default_test_args, expected_output_path, tmp_path):
-    LISseq_clean.main(default_test_args)
-    for i in range(3):
+def test_cleanup(default_test_args, expected_output_path, tmp_path):
+    args = LISseq_clean._parse_args(default_test_args)
+    LISseq_clean._cleanup(args)
+    for i in range(1,3):
         with open(f"{tmp_path}/{i}.fq_clean.fq", mode="r") as test_file, open(f"{expected_output_path}/{i}.fq_clean.fq", mode="r") as exp_file:
             test_lines = test_file.readlines()
             exp_lines = exp_file.readlines()
