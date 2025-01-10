@@ -54,16 +54,17 @@ def _parse_fqgz(input_file_path: pathlib.Path):
 def _clean_read(
     read: SeqRecord.SeqRecord, ltr: str, polyAlen: int, min_quality: int, min_len: int
 ) -> SeqRecord.SeqRecord:
-    new_read = read[len(ltr) :]
-    polyA_pos = new_read.seq.find(polyAlen * "A")
-    if polyA_pos != -1:
-        new_read = new_read[:polyA_pos]
-    if len(new_read.seq) >= min_len:
-        if (
-            "N" not in new_read.seq
-            and min(new_read.letter_annotations["phred_quality"]) >= min_quality
-        ):
-            return new_read
+    if ltr in read.seq:
+        new_read = read[len(ltr) :]
+        polyA_pos = new_read.seq.find(polyAlen * "A")
+        if polyA_pos != -1:
+            new_read = new_read[:polyA_pos]
+        if len(new_read.seq) >= min_len:
+            if (
+                "N" not in new_read.seq
+                and min(new_read.letter_annotations["phred_quality"]) >= min_quality
+            ):
+                return new_read
     return SeqRecord.SeqRecord(seq=Seq.Seq(""), id="")
 
 
@@ -130,24 +131,25 @@ def _bowtie_map(clean_fq_file:pathlib.Path, idx_dir:str, idx_name:str, out_dir:s
 
 def _read_sam_to_df(sam_file:str) -> pd.DataFrame:
     reads = pysam.AlignmentFile(sam_file, mode="r")
-    read_dict = {"read":[], "flag":[],"chr":[], "pos":[],"Q":[]}
+    read_dict = {"read":[], "flag":[],"chr":[], "pos":[],"Q":[], "seq":[]}
     for read in reads:
         read_dict["read"].append(read.query_name)
         read_dict["flag"].append(read.flag)
         read_dict["chr"].append(read.reference_name)
         read_dict["pos"].append(read.reference_start)
         read_dict["Q"].append(read.mapping_quality)
+        read_dict["seq"].append(read.query_sequence)
     mappings_df = pd.DataFrame(read_dict).set_index("read")
     return mappings_df
 
 
 def _extract_IS(mappings_df:pd.DataFrame, Q, all) -> pd.DataFrame:
     filtered_df = mappings_df[(mappings_df["Q"] >= Q)]
-    loci = filtered_df.groupby(["chr","pos","flag"]).agg(depth = ('Q', "count"), mean_q = ("Q", "mean"))
+    loci = filtered_df.groupby(["chr","pos","flag"]).agg(depth = ('Q', "count"), mean_q = ("Q", "mean"), seq = ("seq", "first"))
     loci["ratio"] = round(loci["depth"]/len(filtered_df)*100,2)
     if all == False:
         loci = loci[loci["ratio"]>=30]
-    return loci
+    return loci, len(filtered_df)
 
 
 def _map_IS(args, IS_dict):
@@ -162,22 +164,27 @@ def _map_IS(args, IS_dict):
                 print(f"Processing file {counter} of {len(in_fqs)}.", end="\r", flush=True)
                 alignments = _bowtie_map(clean_fq, args.idx, idx_name, args.output_dir)
                 mappings_df = _read_sam_to_df(alignments)
-                loci = _extract_IS(mappings_df, args.q, args.all).sort_values("depth", ascending=False)
+                loci, total_mapped = _extract_IS(mappings_df, args.q, args.all)
+                loci = loci.sort_values("depth", ascending=False)
                 if args.all == True:
                     loci.to_csv(f"{args.output_dir}/{clean_fq.stem}.csv")
                 best_is = loci[loci["depth"] == loci["depth"].max()].reset_index()
                 if len(best_is) > 0:
                     IS_dict[sample_name]["chr"] = best_is.iloc[0,0]
                     IS_dict[sample_name]["pos"] = best_is.iloc[0,1]
-                    IS_dict[sample_name]["strand"] = flag_to_strand[best_is.iloc[0,2]]       
-                    IS_dict[sample_name]["mapped_reads"] = best_is.iloc[0,3]
+                    IS_dict[sample_name]["strand"] = flag_to_strand[best_is.iloc[0,2]]  
+                    IS_dict[sample_name]["total_mapped"] = total_mapped
+                    IS_dict[sample_name]["mapped_to_locus"] = best_is.iloc[0,3]
                     IS_dict[sample_name]["mapping_quality"] = round(best_is.iloc[0,4],2)
+                    IS_dict[sample_name]["seq"] = best_is.iloc[0,5]
                 else:
                     IS_dict[sample_name]["chr"] = 0
                     IS_dict[sample_name]["pos"] = 0
                     IS_dict[sample_name]["strand"] = ""     
-                    IS_dict[sample_name]["mapped_reads"] = 0
-                    IS_dict[sample_name]["mapping_quality"] = 0       
+                    IS_dict[sample_name]["total_mapped"] = total_mapped
+                    IS_dict[sample_name]["mapped_to_locus"] = 0
+                    IS_dict[sample_name]["mapping_quality"] = 0   
+                    IS_dict[sample_name]["seq"] = ""
                 counter += 1
 
 
@@ -207,7 +214,7 @@ def main(arg_list: list[str] | None = None):
     IS_df = pd.DataFrame.from_dict(IS_dict).T
     if args.G == True:
         IS_df["gene"] = IS_df.apply(lambda row: _get_gene(row["chr"], row["pos"]), axis=1)
-    IS_df = IS_df[["chr", "pos","strand","gene","raw_reads","filtered_reads","mapped_reads","mapping_quality"]]
+    IS_df = IS_df[["chr", "pos","strand","gene","raw_reads","filtered_reads","total_mapped","mapped_to_locus","mapping_quality","seq"]]
     IS_df.to_csv(f"{args.output_dir}/integration_sites.csv")
     print("\nDone.")
 
