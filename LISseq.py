@@ -16,11 +16,12 @@ import shutil
 import subprocess
 import pysam
 import requests
-import sys
+import os
 import pandas as pd
 from Bio import SeqIO, SeqRecord, Seq
 
 ENSEMBL_SERVER = "http://rest.ensembl.org"
+
 
 def _parse_args(arg_list: list[str] | None):
     parser = argparse.ArgumentParser()
@@ -37,6 +38,11 @@ def _parse_args(arg_list: list[str] | None):
 
 def _find_fqgz(dir: str) -> list[pathlib.Path]:
     in_path = pathlib.Path(dir)
+    if in_path.exists() == False:
+        raise FileNotFoundError("Please provide a correct input directory.")
+    if in_path.is_dir() == False:
+        raise NotADirectoryError("Please provide a correct input directory.")
+    
     return list(in_path.glob("**/*.fq.gz"))
 
 
@@ -93,6 +99,7 @@ def _cleanup_reads(args):
             IS_dict[sample_name] = {"raw_reads":raw_reads_counter, "filtered_reads":len(nice_reads)}
         counter += 1
     return IS_dict
+
 
 def _find_fq(dir: str) -> list[pathlib.Path]:
     in_path = pathlib.Path(dir)
