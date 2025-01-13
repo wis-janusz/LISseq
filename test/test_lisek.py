@@ -48,11 +48,15 @@ def test_check_hg38idx_wrong(hg38idx_wrong_dir):
 def test_read_sam(expected_output_path):
     test_df1 = LISseq._read_sam_to_df(f"{expected_output_path}/1_cos.fq_clean.sam")
     test_df2 = LISseq._read_sam_to_df(f"{expected_output_path}/2_cos.fq_clean.sam")
-    assert (len(test_df1) == 5) & (len(test_df2) == 1)
-    assert test_df1.columns.equals(pd.Index(["flag","chr","pos","Q"]))
-    assert test_df2.columns.equals(pd.Index(["flag","chr","pos","Q"]))
+    assert (len(test_df1) == 3) & (len(test_df2) == 1)
+    assert test_df1.columns.equals(pd.Index(["flag","chr","pos","Q", "seq"]))
+    assert test_df2.columns.equals(pd.Index(["flag","chr","pos","Q", "seq"]))
 
 def test_extract_IS(expected_output_path):
-    test_df = LISseq._read_sam_to_df(f"{expected_output_path}/1_cos.fq_clean.sam")
-    LISseq._extract_IS(test_df,20)
-    assert False
+    test_df1 = LISseq._read_sam_to_df(f"{expected_output_path}/1_cos.fq_clean.sam")
+    test_df2 = LISseq._read_sam_to_df(f"{expected_output_path}/2_cos.fq_clean.sam")
+    mapping_1,total1 = LISseq._extract_IS(test_df1,20)
+    mapping_2,total2 = LISseq._extract_IS(test_df2,20)
+    assert (total1 == 1) & (total2 == 0)
+    assert mapping_1.columns.equals(pd.Index(["depth","mean_q", "seq"]))
+    assert mapping_2.columns.equals(pd.Index(["depth","mean_q", "seq"]))

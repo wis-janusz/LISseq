@@ -22,7 +22,7 @@ def expected_output_path():
 
 @pytest.fixture
 def expected_IS_dict_raw_reads():
-    return {"0":{"raw_reads":3},"1":{"raw_reads":5},"2":{"raw_reads":4}}
+    return {"0":{"raw_reads":3, "filtered_reads":0},"1":{"raw_reads":5, "filtered_reads":3},"2":{"raw_reads":4, "filtered_reads":1}}
 
 @pytest.fixture
 def syspath_no_bowtie():

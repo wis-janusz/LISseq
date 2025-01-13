@@ -26,12 +26,11 @@ def _parse_args(arg_list: list[str] | None):
     parser = argparse.ArgumentParser()
     parser.add_argument("input_dir", type=str, help="Path to input directory.")
     parser.add_argument("output_dir", type=str, help="Path to output directory.")
-    parser.add_argument("-ltr", type=str, default="GGAGTGAATTAGCCCTTCCA")
-    parser.add_argument("-G", action="store_true")
-    parser.add_argument("-all", action="store_true")
-    parser.add_argument("-A", type=int, default=5)
-    parser.add_argument("-q", type=int, default=20)
-    parser.add_argument("-l", type=int, default=15)
+    parser.add_argument("-ltr", type=str, default="GGAGTGAATTAGCCCTTCCA", help="Sequence of the part of HIV 5' LTR present in raw reads.")
+    parser.add_argument("-save_all_loci", action="store_true", help="If True, will save a table with all mapped loci for each file.")
+    parser.add_argument("-A", type=int, default=5, help="Minimum length of streches of A to be removed from reads.")
+    parser.add_argument("-q", type=int, default=20, help="Minimum sequencing quality of reads and minimum alingment quality of mapping.")
+    parser.add_argument("-l", type=int, default=20, help="Minumim length of cleaned reads to be considered for mapping.")
     parser.add_argument("-idx", type=str, default="GRCh38_noalt_as")
     return parser.parse_args(arg_list)
 
@@ -143,12 +142,10 @@ def _read_sam_to_df(sam_file:str) -> pd.DataFrame:
     return mappings_df
 
 
-def _extract_IS(mappings_df:pd.DataFrame, Q, all) -> pd.DataFrame:
+def _extract_IS(mappings_df:pd.DataFrame, Q) -> pd.DataFrame:
     filtered_df = mappings_df[(mappings_df["Q"] >= Q)]
     loci = filtered_df.groupby(["chr","pos","flag"]).agg(depth = ('Q', "count"), mean_q = ("Q", "mean"), seq = ("seq", "first"))
-    loci["ratio"] = round(loci["depth"]/len(filtered_df)*100,2)
-    if all == False:
-        loci = loci[loci["ratio"]>=30]
+    loci = loci[loci["depth"] >= 1000]
     return loci, len(filtered_df)
 
 
@@ -164,9 +161,9 @@ def _map_IS(args, IS_dict):
                 print(f"Processing file {counter} of {len(in_fqs)}.", end="\r", flush=True)
                 alignments = _bowtie_map(clean_fq, args.idx, idx_name, args.output_dir)
                 mappings_df = _read_sam_to_df(alignments)
-                loci, total_mapped = _extract_IS(mappings_df, args.q, args.all)
+                loci, total_mapped = _extract_IS(mappings_df, args.q)
                 loci = loci.sort_values("depth", ascending=False)
-                if args.all == True:
+                if args.save_all_loci == True:
                     loci.to_csv(f"{args.output_dir}/{clean_fq.stem}.csv")
                 best_is = loci[loci["depth"] == loci["depth"].max()].reset_index()
                 if len(best_is) > 0:
@@ -212,8 +209,7 @@ def main(arg_list: list[str] | None = None):
     print("Mapping and extracting IS.")
     _map_IS(args, IS_dict)
     IS_df = pd.DataFrame.from_dict(IS_dict).T
-    if args.G == True:
-        IS_df["gene"] = IS_df.apply(lambda row: _get_gene(row["chr"], row["pos"]), axis=1)
+    IS_df["gene"] = IS_df.apply(lambda row: _get_gene(row["chr"], row["pos"]), axis=1)
     IS_df = IS_df[["chr", "pos","strand","gene","raw_reads","filtered_reads","total_mapped","mapped_to_locus","mapping_quality","seq"]]
     IS_df.to_csv(f"{args.output_dir}/integration_sites.csv")
     print("\nDone.")
