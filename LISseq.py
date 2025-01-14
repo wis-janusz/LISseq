@@ -80,7 +80,7 @@ def _save_clean_reads(read_list: list, out_dir, filename):
     if out_path.is_dir() == False:
         raise NotADirectoryError("Please provide a correct output directory.")
     
-    SeqIO.write(read_list, f"{out_dir}/{filename}_clean.fq", format="fastq")
+    SeqIO.write(read_list, f"{out_dir}/temp/{filename}_clean.fq", format="fastq")
 
 
 def _cleanup_reads(args):
@@ -108,7 +108,7 @@ def _cleanup_reads(args):
 
 
 def _find_fq(dir: str) -> list[pathlib.Path]:
-    in_path = pathlib.Path(dir)
+    in_path = pathlib.Path(f"{dir}/temp/")
     return list(in_path.glob("**/*.fq"))
 
 
@@ -128,7 +128,7 @@ def _check_genome_index(idx_dir):
 
 
 def _bowtie_map(clean_fq_file:pathlib.Path, idx_dir:str, idx_name:str, out_dir:str):
-    out_file = f"{out_dir}/{clean_fq_file.stem}.sam"
+    out_file = f"{out_dir}/temp/{clean_fq_file.stem}.sam"
     map_cmd = [
         "bowtie2",
         "-x",
@@ -219,7 +219,7 @@ def _get_gene(chr:int, pos:int) -> str:
 def main(arg_list: list[str] | None = None):
     args = _parse_args(arg_list)
     if pathlib.Path(args.output_dir).exists() == False:
-        os.makedirs(args.output_dir)
+        os.makedirs(f"{args.output_dir}/temp/")
     IS_dict = _cleanup_reads(args)
     print("\nFinished cleaning up reads.")
     print("Mapping and extracting IS.")
