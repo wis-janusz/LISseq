@@ -32,7 +32,7 @@ def _parse_args(arg_list: list[str] | None):
     parser.add_argument("-A", type=int, default=5, help="Minimum length of streches of A to be removed from reads.")
     parser.add_argument("-q", type=int, default=20, help="Minimum sequencing quality of reads and minimum alingment quality of mapping.")
     parser.add_argument("-l", type=int, default=20, help="Minumim length of cleaned reads to be considered for mapping.")
-    parser.add_argument("-idx", type=str, default="GRCh38_noalt_as")
+    parser.add_argument("-idx", type=str, default="GRCh38_noalt_as", help="Specifies the directory containing reference genome index.")
     return parser.parse_args(arg_list)
 
 
