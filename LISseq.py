@@ -178,11 +178,9 @@ def _map_IS(args, IS_dict):
             mappings_df = _read_sam_to_df(alignments)
             loci, total_mapped = _extract_IS(mappings_df, args.q)
             loci = loci.sort_values("depth", ascending=False)
-            print(loci)
             if args.save_all_loci == True:
                 loci.to_csv(f"{args.output_dir}/{clean_fq.stem}.csv")
             best_is = loci[loci["depth"] == loci["depth"].max()].reset_index()
-            print(best_is)
             if len(best_is) > 0:
                 IS_dict[sample_name]["chr"] = best_is.iloc[0,0]
                 IS_dict[sample_name]["pos"] = best_is.iloc[0,1]
@@ -200,7 +198,6 @@ def _map_IS(args, IS_dict):
                 IS_dict[sample_name]["mapping_quality"] = 0   
                 IS_dict[sample_name]["seq"] = ""
             counter += 1
-    print(IS_dict)
 
 def _get_gene(chr:int, pos:int) -> str:
     server = ENSEMBL_SERVER
