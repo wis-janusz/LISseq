@@ -113,15 +113,18 @@ def _find_fq(dir: str) -> list[pathlib.Path]:
 
 
 def _check_bowtie2(path:str = None):
-    return shutil.which("bowtie2", path=path)
+    if shutil.which("bowtie2", path=path) != None:
+        return True
+    else:
+        raise FileNotFoundError("bowtie2 not found. Please install it and add it to PATH.")
 
 
-def _check_hg38_index(idx_dir):
+def _check_genome_index(idx_dir):
     idx_list = list(pathlib.Path(idx_dir).glob("*.bt2"))
     if len(idx_list) > 0:
         return idx_list[0].name.split(".")[0]
     else:
-        return ""
+        raise FileNotFoundError(f"No bowtie2-indexed genome found in {idx_dir}, please download or build one.")
 
 
 def _bowtie_map(clean_fq_file:pathlib.Path, idx_dir:str, idx_name:str, out_dir:str):
@@ -165,38 +168,39 @@ def _extract_IS(mappings_df:pd.DataFrame, Q) -> pd.DataFrame:
 def _map_IS(args, IS_dict):
     in_fqs = _find_fq(args.output_dir)
     flag_to_strand = {16:"-",0:"+"}
-    if _check_bowtie2 != None:
-        idx_name = _check_hg38_index(args.idx)
-        if idx_name != "":
-            counter = 1
-            for clean_fq in in_fqs:
-                sample_name = clean_fq.stem.split("_")[0]
-                print(f"Processing file {counter} of {len(in_fqs)}.", end="\r", flush=True)
-                alignments = _bowtie_map(clean_fq, args.idx, idx_name, args.output_dir)
-                mappings_df = _read_sam_to_df(alignments)
-                loci, total_mapped = _extract_IS(mappings_df, args.q)
-                loci = loci.sort_values("depth", ascending=False)
-                if args.save_all_loci == True:
-                    loci.to_csv(f"{args.output_dir}/{clean_fq.stem}.csv")
-                best_is = loci[loci["depth"] == loci["depth"].max()].reset_index()
-                if len(best_is) > 0:
-                    IS_dict[sample_name]["chr"] = best_is.iloc[0,0]
-                    IS_dict[sample_name]["pos"] = best_is.iloc[0,1]
-                    IS_dict[sample_name]["strand"] = flag_to_strand[best_is.iloc[0,2]]  
-                    IS_dict[sample_name]["total_mapped"] = total_mapped
-                    IS_dict[sample_name]["mapped_to_locus"] = best_is.iloc[0,3]
-                    IS_dict[sample_name]["mapping_quality"] = round(best_is.iloc[0,4],2)
-                    IS_dict[sample_name]["seq"] = best_is.iloc[0,5]
-                else:
-                    IS_dict[sample_name]["chr"] = 0
-                    IS_dict[sample_name]["pos"] = 0
-                    IS_dict[sample_name]["strand"] = ""     
-                    IS_dict[sample_name]["total_mapped"] = total_mapped
-                    IS_dict[sample_name]["mapped_to_locus"] = 0
-                    IS_dict[sample_name]["mapping_quality"] = 0   
-                    IS_dict[sample_name]["seq"] = ""
-                counter += 1
-
+    if _check_bowtie2() == True:
+        idx_name = _check_genome_index(args.idx)
+        counter = 1
+        for clean_fq in in_fqs:
+            sample_name = clean_fq.stem.split("_")[0]
+            print(f"Processing file {counter} of {len(in_fqs)}.", end="\r", flush=True)
+            alignments = _bowtie_map(clean_fq, args.idx, idx_name, args.output_dir)
+            mappings_df = _read_sam_to_df(alignments)
+            loci, total_mapped = _extract_IS(mappings_df, args.q)
+            loci = loci.sort_values("depth", ascending=False)
+            print(loci)
+            if args.save_all_loci == True:
+                loci.to_csv(f"{args.output_dir}/{clean_fq.stem}.csv")
+            best_is = loci[loci["depth"] == loci["depth"].max()].reset_index()
+            print(best_is)
+            if len(best_is) > 0:
+                IS_dict[sample_name]["chr"] = best_is.iloc[0,0]
+                IS_dict[sample_name]["pos"] = best_is.iloc[0,1]
+                IS_dict[sample_name]["strand"] = flag_to_strand[best_is.iloc[0,2]]  
+                IS_dict[sample_name]["total_mapped"] = total_mapped
+                IS_dict[sample_name]["mapped_to_locus"] = best_is.iloc[0,3]
+                IS_dict[sample_name]["mapping_quality"] = round(best_is.iloc[0,4],2)
+                IS_dict[sample_name]["seq"] = best_is.iloc[0,5]
+            else:
+                IS_dict[sample_name]["chr"] = 0
+                IS_dict[sample_name]["pos"] = 0
+                IS_dict[sample_name]["strand"] = ""     
+                IS_dict[sample_name]["total_mapped"] = total_mapped
+                IS_dict[sample_name]["mapped_to_locus"] = 0
+                IS_dict[sample_name]["mapping_quality"] = 0   
+                IS_dict[sample_name]["seq"] = ""
+            counter += 1
+    print(IS_dict)
 
 def _get_gene(chr:int, pos:int) -> str:
     server = ENSEMBL_SERVER
