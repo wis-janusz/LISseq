@@ -1,12 +1,12 @@
 """A CLI utility to map LISseq reads.
 
-Reads fq.gz files contating raw reads from the input folder, removes HIV 5'LTR 
+Reads fq.gz files contating raw reads from the input directory, removes HIV 5'LTR 
 and polyA sequences, filters by quality and length of remaining sequence
 then maps reads to reference genome using bowtie2
 and finally outputs integration sites.
 
 Typical usage example:
-  python LISseq_clean.py input_folder output_folder
+  python LISseq_clean.py input_directory output_directory
 """
 
 import argparse
@@ -74,6 +74,12 @@ def _clean_read(
 
 
 def _save_clean_reads(read_list: list, out_dir):
+    in_path = pathlib.Path(out_dir)
+    if in_path.exists() == False:
+        raise FileNotFoundError("Please provide a correct input directory.")
+    if in_path.is_dir() == False:
+        raise NotADirectoryError("Please provide a correct input directory.")
+    
     SeqIO.write(read_list, out_dir, format="fastq")
 
 
@@ -211,6 +217,8 @@ def _get_gene(chr:int, pos:int) -> str:
 
 def main(arg_list: list[str] | None = None):
     args = _parse_args(arg_list)
+    if pathlib.Path(args.output_dir).exists() == False:
+        os.makedirs(args.output_dir)
     IS_dict = _cleanup_reads(args)
     print("\nFinished cleaning up reads.")
     print("Mapping and extracting IS.")

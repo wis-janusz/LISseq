@@ -7,3 +7,8 @@ Installation:
 3. Download a bowtie2 indexed reference genome and extract the .bt2 files to a directory.
    Default is Human / GRCh38 no-alt analysis set from https://benlangmead.github.io/aws-indexes/bowtie ,
    extracted to GRCh38_noalt_as/ in the main LISseq directory.
+
+Usage:
+1. The raw reads must be untarred to one input directory and its subdirectories but there is no need do decompress them.
+2. Execute `python LISseq.py {input_directory} {output_directory}`.
+3. Identified integration sites are listed in {output_directory}/integration_sites.csv.

@@ -144,6 +144,27 @@ class TestCleanRead:
         assert cleaned_read_low_quality.seq == Seq.Seq("")
 
 
+class TestSaveCleanReads:
+    @patch('pathlib.Path.exists', return_value=False)
+    def test_save_clean_reads_directory_not_found(self, mock_exists):
+        with pytest.raises(FileNotFoundError):
+            _save_clean_reads([], 'non_existent_directory')
+
+    @patch('pathlib.Path.is_dir', return_value=False)
+    @patch('pathlib.Path.exists', return_value=True)
+    def test_save_clean_reads_not_a_directory(self, mock_exists, mock_is_dir):
+        with pytest.raises(NotADirectoryError):
+            _save_clean_reads([], 'not_a_directory')
+
+    @patch('Bio.SeqIO.write')
+    @patch('pathlib.Path.is_dir', return_value=True)
+    @patch('pathlib.Path.exists', return_value=True)
+    def test_save_clean_reads_successful_write(self, mock_exists, mock_is_dir, mock_write):
+        read_list = [MagicMock()]
+        _save_clean_reads(read_list, 'output_directory')
+        mock_write.assert_called_once_with(read_list, 'output_directory', format="fastq")
+
+
 class TestCleanupReads:
     @patch('LISseq._find_fqgz')
     @patch('LISseq._parse_fqgz')
