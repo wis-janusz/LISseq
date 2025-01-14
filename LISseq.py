@@ -76,9 +76,9 @@ def _clean_read(
 def _save_clean_reads(read_list: list, out_dir):
     in_path = pathlib.Path(out_dir)
     if in_path.exists() == False:
-        raise FileNotFoundError("Please provide a correct input directory.")
+        raise FileNotFoundError("Please provide a correct output directory.")
     if in_path.is_dir() == False:
-        raise NotADirectoryError("Please provide a correct input directory.")
+        raise NotADirectoryError("Please provide a correct output directory.")
     
     SeqIO.write(read_list, out_dir, format="fastq")
 
