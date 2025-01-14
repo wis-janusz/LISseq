@@ -73,14 +73,14 @@ def _clean_read(
     return SeqRecord.SeqRecord(seq=Seq.Seq(""), id="")
 
 
-def _save_clean_reads(read_list: list, out_dir):
-    in_path = pathlib.Path(out_dir)
-    if in_path.exists() == False:
+def _save_clean_reads(read_list: list, out_dir, filename):
+    out_path = pathlib.Path(out_dir)
+    if out_path.exists() == False:
         raise FileNotFoundError("Please provide a correct output directory.")
-    if in_path.is_dir() == False:
+    if out_path.is_dir() == False:
         raise NotADirectoryError("Please provide a correct output directory.")
     
-    SeqIO.write(read_list, out_dir, format="fastq")
+    SeqIO.write(read_list, f"{out_dir}/{filename}_clean.fq", format="fastq")
 
 
 def _cleanup_reads(args):
@@ -100,7 +100,7 @@ def _cleanup_reads(args):
             if nice_read.id != "":
                 nice_reads.append(nice_read)
         if len(nice_reads) > 0:
-            _save_clean_reads(nice_reads, f"{args.output_dir}/{infile.stem}_clean.fq")
+            _save_clean_reads(nice_reads, args.output_dir, infile.stem)
         if raw_reads_counter > 0:
             IS_dict[sample_name] = {"raw_reads":raw_reads_counter, "filtered_reads":len(nice_reads)}
         counter += 1

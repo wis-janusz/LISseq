@@ -147,22 +147,25 @@ class TestCleanRead:
 class TestSaveCleanReads:
     @patch('pathlib.Path.exists', return_value=False)
     def test_save_clean_reads_directory_not_found(self, mock_exists):
+        filename = "file1"
         with pytest.raises(FileNotFoundError):
-            _save_clean_reads([], 'non_existent_directory')
+            _save_clean_reads([], 'non_existent_directory',filename)
 
     @patch('pathlib.Path.is_dir', return_value=False)
     @patch('pathlib.Path.exists', return_value=True)
     def test_save_clean_reads_not_a_directory(self, mock_exists, mock_is_dir):
+        filename = "file1"
         with pytest.raises(NotADirectoryError):
-            _save_clean_reads([], 'not_a_directory')
+            _save_clean_reads([], 'not_a_directory',filename)
 
     @patch('Bio.SeqIO.write')
     @patch('pathlib.Path.is_dir', return_value=True)
     @patch('pathlib.Path.exists', return_value=True)
     def test_save_clean_reads_successful_write(self, mock_exists, mock_is_dir, mock_write):
+        filename = "file1"
         read_list = [MagicMock()]
-        _save_clean_reads(read_list, 'output_directory')
-        mock_write.assert_called_once_with(read_list, 'output_directory', format="fastq")
+        _save_clean_reads(read_list, 'output_directory', filename)
+        mock_write.assert_called_once_with(read_list, 'output_directory/file1_clean.fq', format="fastq")
 
 
 class TestCleanupReads:
