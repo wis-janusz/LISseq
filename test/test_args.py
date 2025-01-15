@@ -7,12 +7,12 @@ class TestParseArgs:
         args = _parse_args([
             "input_dir_path", 
             "output_dir_path", 
-            "-ltr", "ACTGACTGACTG", 
-            "-save_all_loci", 
+            "--ltr", "ACTGACTGACTG", 
+            "--save_all_loci", 
             "-A", "10", 
             "-q", "30", 
             "-l", "25", 
-            "-idx", "CustomIndex"
+            "--idx", "CustomIndex"
         ])
         assert args.input_dir == "input_dir_path"
         assert args.output_dir == "output_dir_path"
