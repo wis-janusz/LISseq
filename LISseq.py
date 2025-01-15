@@ -27,12 +27,12 @@ def _parse_args(arg_list: list[str] | None):
     parser = argparse.ArgumentParser()
     parser.add_argument("input_dir", type=str, help="Path to input directory.")
     parser.add_argument("output_dir", type=str, help="Path to output directory.")
-    parser.add_argument("-ltr", type=str, default="GGAGTGAATTAGCCCTTCCA", help="Sequence of the part of HIV 5' LTR present in raw reads.")
-    parser.add_argument("-save_all_loci", action="store_true", help="If True, will save a table with all mapped loci for each file.")
+    parser.add_argument("--ltr", type=str, default="GGAGTGAATTAGCCCTTCCA", help="Sequence of the part of HIV 5' LTR present in raw reads.")
+    parser.add_argument("--save_all_loci", action="store_true", help="If True, will save a table with all mapped loci for each file.")
     parser.add_argument("-A", type=int, default=5, help="Minimum length of streches of A to be removed from reads.")
     parser.add_argument("-q", type=int, default=20, help="Minimum sequencing quality of reads and minimum alingment quality of mapping.")
     parser.add_argument("-l", type=int, default=20, help="Minumim length of cleaned reads to be considered for mapping.")
-    parser.add_argument("-idx", type=str, default="GRCh38_noalt_as", help="Specifies the directory containing reference genome index.")
+    parser.add_argument("--idx", type=str, default="GRCh38_noalt_as", help="Specifies the directory containing reference genome index.")
     return parser.parse_args(arg_list)
 
 
