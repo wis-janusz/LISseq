@@ -38,9 +38,9 @@ def _parse_args(arg_list: list[str] | None):
 
 def _find_fqgz(dir: str) -> list[pathlib.Path]:
     in_path = pathlib.Path(dir)
-    if in_path.exists() == False:
+    if not in_path.exists():
         raise FileNotFoundError("Please provide a correct input directory.")
-    if in_path.is_dir() == False:
+    if not in_path.is_dir():
         raise NotADirectoryError("Please provide a correct input directory.")
     
     return list(in_path.glob("**/*.fq.gz"))
@@ -128,7 +128,7 @@ def _check_genome_index(idx_dir):
 
 
 def _bowtie_map(clean_fq_file:pathlib.Path, idx_dir:str, idx_name:str, out_dir:str):
-    out_file = f"{out_dir}/temp/{clean_fq_file.stem}.sam"
+    out_file = os.path.join(out_dir, "temp",f"{clean_fq_file.stem}.sam")
     map_cmd = [
         "bowtie2",
         "-x",
@@ -145,17 +145,23 @@ def _bowtie_map(clean_fq_file:pathlib.Path, idx_dir:str, idx_name:str, out_dir:s
     return out_file
 
 def _read_sam_to_df(sam_file:str) -> pd.DataFrame:
-    reads = pysam.AlignmentFile(sam_file, mode="r")
-    read_dict = {"read":[], "flag":[],"chr":[], "pos":[],"Q":[], "seq":[]}
-    for read in reads:
-        read_dict["read"].append(read.query_name)
-        read_dict["flag"].append(read.flag)
-        read_dict["chr"].append(read.reference_name)
-        read_dict["pos"].append(read.reference_start)
-        read_dict["Q"].append(read.mapping_quality)
-        read_dict["seq"].append(read.query_sequence)
-    mappings_df = pd.DataFrame(read_dict).set_index("read")
-    return mappings_df
+    try:
+        with pysam.AlignmentFile(sam_file, mode="r") as reads:
+            read_dict = {"read":[], "flag":[],"chr":[], "pos":[],"Q":[], "seq":[]}
+            for read in reads:
+                read_dict["read"].append(read.query_name)
+                read_dict["flag"].append(read.flag)
+                read_dict["chr"].append(read.reference_name)
+                read_dict["pos"].append(read.reference_start+1)
+                read_dict["Q"].append(read.mapping_quality)
+                read_dict["seq"].append(read.query_sequence)
+            mappings_df = pd.DataFrame(read_dict).set_index("read")
+        return mappings_df
+    except ValueError:
+        with open(sam_file, mode="r") as in_file:
+            print(in_file.read())
+        raise ValueError("File is not a valid sam alignment file.")
+    
 
 
 def _extract_IS(mappings_df:pd.DataFrame, Q) -> pd.DataFrame:
@@ -227,7 +233,7 @@ def main(arg_list: list[str] | None = None):
     IS_df = pd.DataFrame.from_dict(IS_dict).T
     IS_df["gene"] = IS_df.apply(lambda row: _get_gene(row["chr"], row["pos"]), axis=1)
     IS_df = IS_df[["chr", "pos","strand","gene","raw_reads","filtered_reads","total_mapped","mapped_to_locus","mapping_quality","seq"]]
-    IS_df.to_csv(f"{args.output_dir}/integration_sites.csv")
+    IS_df.to_csv(f"{args.output_dir}/integration_sites.csv", index_label="sample")
     print("\nDone.")
 
 
