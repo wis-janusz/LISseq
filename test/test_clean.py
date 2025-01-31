@@ -3,7 +3,7 @@ import pathlib
 from unittest.mock import patch, MagicMock 
 import gzip
 from Bio import SeqIO, SeqRecord, Seq
-from LISseq import _parse_args, _find_fqgz, _parse_fqgz, _clean_read, _save_clean_reads, _cleanup_reads
+from LISseq import _parse_args, _find_fqgz, _parse_fqgz, _find_ltr, _clean_read, _save_clean_reads, _cleanup_reads
 
 
 class TestFindFqgz:
@@ -74,6 +74,32 @@ class TestParseFqgz:
         records = list(_parse_fqgz(invalid_gz_path))
         assert len(records) == 0
 
+class TestFindLTR:
+    def test_find_ltr_identification(self):
+        read_seq = Seq.Seq("ATCGTACGATCG")
+        ltr = "TACG"
+        assert _find_ltr(read_seq, ltr) == True
+
+    def test_find_ltr_allowed_default_mismatch(self):
+        read_seq = Seq.Seq("ATCGTCCGATCG")
+        ltr = "TACG"
+        assert _find_ltr(read_seq, ltr) == True
+
+    def test_find_ltr_allowed_custom_mismatch(self):
+        read_seq = Seq.Seq("ATCGTCCGTTCG")
+        ltr = "TACGAT"
+        assert _find_ltr(read_seq, ltr, max_mismatches=2) == True
+
+    def test_find_ltr_absence(self):
+        read_seq = Seq.Seq("ATCGTACGATCG")
+        ltr = "GGGG"
+        assert _find_ltr(read_seq, ltr) == False
+
+    def test_find_ltr_short_read_seq(self):
+        read_seq = Seq.Seq("ATC")
+        ltr = "TACG"
+        assert _find_ltr(read_seq, ltr) == False
+
 class TestCleanRead:
     def test_clean_read_removes_ltr_and_truncates_polyA(self):
         read = SeqRecord.SeqRecord(
@@ -83,6 +109,15 @@ class TestCleanRead:
         )
         cleaned_read = _clean_read(read, "LTR", 5, 30, 5)
         assert cleaned_read.seq == Seq.Seq("ACGTACGT")
+    
+    def test_clean_read_no_ltr(self):
+        read = SeqRecord.SeqRecord(
+            seq=Seq.Seq("ACGTACGTAAAAA"),
+            id="test",
+            letter_annotations={"phred_quality": [40] * 13}
+        )
+        cleaned_read = _clean_read(read, "LTR", 5, 30, 5)
+        assert cleaned_read.seq == Seq.Seq("")
 
     def test_clean_read_minimum_length_requirement(self):
         read = SeqRecord.SeqRecord(
