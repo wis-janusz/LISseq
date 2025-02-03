@@ -10,5 +10,6 @@ Installation:
 
 Usage:
 1. The raw reads must be untarred to one input directory and its subdirectories but there is no need do decompress them.
-2. Execute `python LISseq.py {input_directory} {output_directory}`.
-3. Identified integration sites are listed in {output_directory}/integration_sites.csv.
+2. Activate the virtual environment that you created for LISseq.
+3. Execute `python LISseq.py {input_directory} {output_directory}`.
+4. Identified integration sites are listed in {output_directory}/integration_sites.csv.
