@@ -158,7 +158,7 @@ class TestReadSamToDf:
         sam_content = """@HD	VN:1.5	SO:unsorted	GO:query
 @SQ	SN:chr1	LN:248956422
 read1	0	chr1	158447409	42	30M	*	0	0	GTTATCCCTCAGAATTAATATTTGTCTTTC	FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF	AS:i:0	XN:i:0	XM:i:0	XO:i:0	XG:i:0	NM:i:0	MD:Z:30	YT:Z:UU
-read2	0	chr1	158447409	42	30M	*	0	0	GTTATCCCTCAGAATTAATATTTGTCTTTC	FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF	AS:i:0	XN:i:0	XM:i:0	XO:i:0	XG:i:0	NM:i:0	MD:Z:30	YT:Z:UU
+read2	16	chr1	158447409	42	30M	*	0	0	GTTATCCCTCAGAATTAATATTTGTCTTTC	FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF	AS:i:0	XN:i:0	XM:i:0	XO:i:0	XG:i:0	NM:i:0	MD:Z:30	YT:Z:UU
 """
         sam_file = tmp_path / "test.sam"
         with open(sam_file, mode="w") as in_file:
@@ -168,13 +168,13 @@ read2	0	chr1	158447409	42	30M	*	0	0	GTTATCCCTCAGAATTAATATTTGTCTTTC	FFFFFFFFFFFFF
 
         # Assert the DataFrame is as expected
         expected_data = {
-            "flag": [0, 0],
+            "flag": [0, 16],
             "chr": ["chr1", "chr1"],
-            "pos": [158447409, 158447409],
+            "pos": [158447409, 158447438],
             "Q": [42, 42],
             "seq": [
-                "GTTATCCCTCAGAATTAATATTTGTCTTTC",
-                "GTTATCCCTCAGAATTAATATTTGTCTTTC",
+                "5'LTR-GTTATCCCTCAGAATTAATATTTGTCTTTC",
+                "GTTATCCCTCAGAATTAATATTTGTCTTTC-5'LTR",
             ],
         }
         expected_df = pd.DataFrame(expected_data, index=["read1", "read2"])

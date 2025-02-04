@@ -210,9 +210,15 @@ def _read_sam_to_df(sam_file: str) -> pd.DataFrame:
                 read_dict["read"].append(read.query_name)
                 read_dict["flag"].append(read.flag)
                 read_dict["chr"].append(read.reference_name)
-                read_dict["pos"].append(read.reference_start + 1)
+                
+                if read.flag == 16:
+                    read_dict["pos"].append(read.reference_start + len(read.query_sequence))
+                    read_dict["seq"].append(read.query_sequence+"-5'LTR")
+                else:
+                    read_dict["pos"].append(read.reference_start + 1)
+                    read_dict["seq"].append("5'LTR-"+read.query_sequence)
                 read_dict["Q"].append(read.mapping_quality)
-                read_dict["seq"].append(read.query_sequence)
+                
             mappings_df = pd.DataFrame(read_dict).set_index("read")
         return mappings_df
     except ValueError:
