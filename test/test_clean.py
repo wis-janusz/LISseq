@@ -3,7 +3,7 @@ import pathlib
 from unittest.mock import patch, MagicMock 
 import gzip
 from Bio import SeqIO, SeqRecord, Seq
-from LISseq import _parse_args, _find_fqgz, _parse_fqgz, _find_ltr, _clean_read, _save_clean_reads, _cleanup_reads
+from src.LISseq import _parse_args, _find_fqgz, _parse_fqgz, _find_ltr, _clean_read, _save_clean_reads, _cleanup_reads
 
 
 class TestFindFqgz:
@@ -171,10 +171,10 @@ class TestSaveCleanReads:
 
 
 class TestCleanupReads:
-    @patch('LISseq._find_fqgz')
-    @patch('LISseq._parse_fqgz')
-    @patch('LISseq._clean_read')
-    @patch('LISseq._save_clean_reads')
+    @patch('src.LISseq._find_fqgz')
+    @patch('src.LISseq._parse_fqgz')
+    @patch('src.LISseq._clean_read')
+    @patch('src.LISseq._save_clean_reads')
     def test_cleanup_reads_identifies_all_files(self, mock_save_clean_reads, mock_clean_read, mock_parse_fqgz, mock_find_fqgz):
         # Setup
         mock_find_fqgz.return_value = [pathlib.Path("sample1_desc.fq.gz"), pathlib.Path("sample2_desc.fq.gz")]
@@ -197,7 +197,7 @@ class TestCleanupReads:
         assert "sample1" in result
         assert "sample2" in result
 
-    @patch('LISseq._find_fqgz')
+    @patch('src.LISseq._find_fqgz')
     def test_cleanup_reads_no_files(self, mock_find_fqgz):
         # Setup
         mock_find_fqgz.return_value = []
@@ -216,9 +216,9 @@ class TestCleanupReads:
         # Verify
         assert result == {}
 
-    @patch('LISseq._find_fqgz')
-    @patch('LISseq._parse_fqgz')
-    @patch('LISseq._clean_read')
+    @patch('src.LISseq._find_fqgz')
+    @patch('src.LISseq._parse_fqgz')
+    @patch('src.LISseq._clean_read')
     def test_cleanup_reads_all_filtered_out(self, mock_clean_read, mock_parse_fqgz, mock_find_fqgz):
         # Setup
         mock_find_fqgz.return_value = [pathlib.Path("sample1_desc.fq.gz")]

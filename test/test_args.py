@@ -1,6 +1,6 @@
 import pytest
 import pathlib
-from LISseq import _parse_args, _find_fqgz, _parse_fqgz, _clean_read, _save_clean_reads, _cleanup_reads
+from src.LISseq import _parse_args, _find_fqgz, _parse_fqgz, _clean_read, _save_clean_reads, _cleanup_reads
 
 class TestParseArgs:
     def test_parse_args_happy_path(self):

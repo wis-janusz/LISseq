@@ -3,4 +3,4 @@ export PYENV_ROOT="$HOME/.pyenv"
 eval "$(pyenv init - bash)"
 
 pyenv activate lisseq
-python LISseq.py $@
+python ./src/LISseq.py $@

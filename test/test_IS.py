@@ -3,7 +3,7 @@ import pathlib
 import os
 from unittest import mock
 import pandas as pd
-from LISseq import (
+from src.LISseq import (
     _find_fq,
     _check_bowtie2,
     _check_genome_index,
