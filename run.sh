@@ -4,3 +4,4 @@ eval "$(pyenv init - bash)"
 
 pyenv activate lisseq
 python ./src/LISseq.py $@
+pyenv deactivate lisseq
