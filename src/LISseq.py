@@ -28,39 +28,45 @@ def _parse_args(arg_list: list[str] | None):
     parser.add_argument("input_dir", type=str, help="Path to input directory.")
     parser.add_argument("output_dir", type=str, help="Path to output directory.")
     parser.add_argument(
-        "--ltr",
-        type=str,
-        default="GGAGTGAATTAGCCCTTCCA",
-        help="Sequence of the part of HIV 5' LTR present in raw reads.",
-    )
-    parser.add_argument(
         "--save_all_loci",
         action="store_true",
-        help="If True, will save a table with all mapped loci for each file.",
-    )
-    parser.add_argument(
-        "-A",
-        type=int,
-        default=5,
-        help="Minimum length of streches of A to be removed from reads.",
-    )
-    parser.add_argument(
-        "-q",
-        type=int,
-        default=20,
-        help="Minimum sequencing quality of reads and minimum alingment quality of mapping.",
-    )
-    parser.add_argument(
-        "-l",
-        type=int,
-        default=20,
-        help="Minumim length of cleaned reads to be considered for mapping.",
+        help="If True, will save a table with all mapped loci for each file. Default is False.",
     )
     parser.add_argument(
         "--idx",
         type=str,
         default="GRCh38_noalt_as",
-        help="Specifies the directory containing reference genome index.",
+        help="Specifies the directory containing reference genome index. Default is 'GRCh38_noalt_as'.",
+    )
+    parser.add_argument(
+        "--ltr",
+        type=str,
+        default="GGAGTGAATTAGCCCTTCCA",
+        help="Sequence of the part of HIV 5' LTR present in raw reads. Default is 'GGAGTGAATTAGCCCTTCCA'.",
+    )
+    parser.add_argument(
+        "--ltrmax",
+        type=int,
+        default=1,
+        help="Maximum number of mismatches allowed when looking for the LTR sequence. Default is 1.",
+    )
+    parser.add_argument(
+        "-A",
+        type=int,
+        default=5,
+        help="Minimum length of stretches of A to be removed from reads. Default is 5.",
+    )
+    parser.add_argument(
+        "-q",
+        type=int,
+        default=20,
+        help="Minimum sequencing quality of reads and minimum alignment quality of mapping. Default is 20.",
+    )
+    parser.add_argument(
+        "-l",
+        type=int,
+        default=20,
+        help="Minimum length of cleaned reads to be considered for mapping. Default is 20.",
     )
     return parser.parse_args(arg_list)
 
@@ -139,7 +145,7 @@ def _cleanup_reads(args):
         raw_reads_counter = 0
         for read in raw_reads:
             raw_reads_counter += 1
-            nice_read = _clean_read(read, args.ltr, args.A, args.q, args.l)
+            nice_read = _clean_read(read, args.ltr, args.A, args.q, args.l, args.ltrm)
             if nice_read.id != "":
                 nice_reads.append(nice_read)
         if len(nice_reads) > 0:
