@@ -7,7 +7,8 @@ class TestParseArgs:
         args = _parse_args([
             "input_dir_path", 
             "output_dir_path", 
-            "--ltr", "ACTGACTGACTG", 
+            "--ltr", "ACTGACTGACTG",
+            "--ltrmax", "2", 
             "--save_all_loci", 
             "-A", "10", 
             "-q", "30", 
@@ -17,6 +18,7 @@ class TestParseArgs:
         assert args.input_dir == "input_dir_path"
         assert args.output_dir == "output_dir_path"
         assert args.ltr == "ACTGACTGACTG"
+        assert args.ltrmax == 2
         assert args.save_all_loci is True
         assert args.A == 10
         assert args.q == 30
@@ -30,6 +32,7 @@ class TestParseArgs:
     def test_parse_args_optional_defaults(self):
         args = _parse_args(["input_dir_path", "output_dir_path"])
         assert args.ltr == "GGAGTGAATTAGCCCTTCCA"
+        assert args.ltrmax == 1
         assert args.save_all_loci is False
         assert args.A == 5
         assert args.q == 20

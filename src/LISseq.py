@@ -145,7 +145,7 @@ def _cleanup_reads(args):
         raw_reads_counter = 0
         for read in raw_reads:
             raw_reads_counter += 1
-            nice_read = _clean_read(read, args.ltr, args.A, args.q, args.l, args.ltrm)
+            nice_read = _clean_read(read, args.ltr, args.A, args.q, args.l, args.ltrmax)
             if nice_read.id != "":
                 nice_reads.append(nice_read)
         if len(nice_reads) > 0:

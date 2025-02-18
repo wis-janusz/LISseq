@@ -179,7 +179,7 @@ class TestCleanupReads:
         # Setup
         mock_find_fqgz.return_value = [pathlib.Path("sample1_desc.fq.gz"), pathlib.Path("sample2_desc.fq.gz")]
         mock_parse_fqgz.return_value = [MagicMock(), MagicMock()]
-        mock_clean_read.side_effect = lambda read, ltr, A, q, l: read
+        mock_clean_read.side_effect = lambda read, ltr, A, q, l, ltrmax: read
 
         args = MagicMock()
         args.input_dir = "input_dir"
@@ -188,6 +188,7 @@ class TestCleanupReads:
         args.A = 10
         args.q = 20
         args.l = 30
+        args.ltrmax = 1
 
         # Execute
         result = _cleanup_reads(args)
