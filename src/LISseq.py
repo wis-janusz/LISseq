@@ -10,14 +10,15 @@ Typical usage example:
 """
 
 import argparse
-import pathlib
 import gzip
+import os
+import pathlib
 import shutil
 import subprocess
+
+import pandas as pd
 import pysam
 import requests
-import os
-import pandas as pd
 from Bio import SeqIO, SeqRecord, Seq
 
 ENSEMBL_SERVER = "http://rest.ensembl.org"
