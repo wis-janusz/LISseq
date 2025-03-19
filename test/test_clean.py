@@ -169,6 +169,14 @@ class TestSaveCleanReads:
         _save_clean_reads(read_list, 'output_directory', filename)
         mock_write.assert_called_once_with(read_list, 'output_directory/temp/file1_clean.fq', format="fastq")
 
+    @patch('Bio.SeqIO.write')
+    @patch('pathlib.Path.is_dir', return_value=True)
+    @patch('pathlib.Path.exists', return_value=True)
+    def test_save_clean_reads_empty(self, mock_exists, mock_is_dir, mock_write):
+        filename = "file1"
+        read_list = []
+        _save_clean_reads(read_list, 'output_directory', filename)
+        mock_write.assert_called_once_with(read_list, 'output_directory/temp/file1_clean.fq', format="fastq")
 
 class TestCleanupReads:
     @patch('src.LISseq._find_fqgz')
@@ -220,7 +228,8 @@ class TestCleanupReads:
     @patch('src.LISseq._find_fqgz')
     @patch('src.LISseq._parse_fqgz')
     @patch('src.LISseq._clean_read')
-    def test_cleanup_reads_all_filtered_out(self, mock_clean_read, mock_parse_fqgz, mock_find_fqgz):
+    @patch('src.LISseq._save_clean_reads')
+    def test_cleanup_reads_all_filtered_out(self, mock_save_clean_reads, mock_clean_read, mock_parse_fqgz, mock_find_fqgz):
         # Setup
         mock_find_fqgz.return_value = [pathlib.Path("sample1_desc.fq.gz")]
         mock_parse_fqgz.return_value = iter([MagicMock(), MagicMock()])
@@ -239,3 +248,27 @@ class TestCleanupReads:
 
         # Verify
         assert result == {"sample1":{"raw_reads":2,"filtered_reads":0}}
+
+    @patch('src.LISseq._find_fqgz')
+    @patch('src.LISseq._parse_fqgz')
+    @patch('src.LISseq._clean_read')
+    @patch('src.LISseq._save_clean_reads')
+    def test_cleanup_reads_no_reads_in_file(self, mock_save_clean_reads, mock_clean_read, mock_parse_fqgz, mock_find_fqgz, capsys):
+        # Setup
+        mock_find_fqgz.return_value = [pathlib.Path("sample1_desc.fq.gz")]
+        mock_parse_fqgz.return_value = iter([])
+
+        args = MagicMock()
+        args.input_dir = "input_dir"
+        args.output_dir = "output_dir"
+        args.ltr = "LTR"
+        args.A = 10
+        args.q = 20
+        args.l = 30
+
+        # Execute
+        result = _cleanup_reads(args)
+
+        # Verify
+        assert result == {}
+        assert capsys.readouterr().out == "Found 1 fq.gz files in input_dir.\nProcessing file 1 of 1.\rFile sample1_desc.fq.gz contains no reads!\n"
