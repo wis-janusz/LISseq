@@ -7,5 +7,5 @@ eval "$(pyenv init - bash)"
 pyenv install 3.12
 pyenv virtualenv 3.12 lisseq
 pyenv activate lisseq
-pip install -r requirements.txt
+pip install -r requirements.txt --disable-pip-version-check
 chmod 754 ./run.sh
