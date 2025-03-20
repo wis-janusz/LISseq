@@ -10,8 +10,8 @@ from src.LISseq import (
     _bowtie_map,
     _read_sam_to_df,
     _extract_IS,
-    _map_IS,
-    _format_data_frame,
+    map_IS,
+    format_data_frame,
 )
 
 
@@ -328,7 +328,7 @@ class TestFormatDataFrame:
         }
         expected_df = pd.DataFrame(expected_data, index=["sample1", "sample2"])
 
-        result_df = _format_data_frame(IS_dict)
+        result_df = format_data_frame(IS_dict)
         pd.testing.assert_frame_equal(result_df, expected_df)
 
     @staticmethod
@@ -362,7 +362,7 @@ class TestFormatDataFrame:
         }
         expected_df = pd.DataFrame(expected_data, index=["sample1"])
 
-        result_df = _format_data_frame(IS_dict)
+        result_df = format_data_frame(IS_dict)
         pd.testing.assert_frame_equal(result_df, expected_df)
 
     @staticmethod
@@ -396,7 +396,7 @@ class TestFormatDataFrame:
         }
         expected_df = pd.DataFrame(expected_data, index=["sample1"])
 
-        result_df = _format_data_frame(IS_dict)
+        result_df = format_data_frame(IS_dict)
         pd.testing.assert_frame_equal(result_df, expected_df)
 
 
@@ -454,7 +454,7 @@ class TestMapIS:
             }), 2),
         ]
 
-        result = _map_IS(args, read_no_dict)
+        result = map_IS(args, read_no_dict)
 
         expected_result = {
             "clean1": {
@@ -498,5 +498,5 @@ class TestMapIS:
         args.q = 20
         read_no_dict = {}
 
-        result = _map_IS(args, read_no_dict)
+        result = map_IS(args, read_no_dict)
         assert result == {}

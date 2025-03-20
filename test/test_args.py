@@ -1,10 +1,9 @@
 import pytest
-import pathlib
-from src.LISseq import _parse_args, _find_fqgz, _parse_fqgz, _clean_read, _save_clean_reads, _cleanup_reads
+from src.LISseq import parse_args
 
 class TestParseArgs:
     def test_parse_args_happy_path(self):
-        args = _parse_args([
+        args = parse_args([
             "input_dir_path", 
             "output_dir_path", 
             "--ltr", "ACTGACTGACTG",
@@ -27,10 +26,10 @@ class TestParseArgs:
 
     def test_parse_args_missing_required(self):
         with pytest.raises(SystemExit):
-            _parse_args([])
+            parse_args([])
 
     def test_parse_args_optional_defaults(self):
-        args = _parse_args(["input_dir_path", "output_dir_path"])
+        args = parse_args(["input_dir_path", "output_dir_path"])
         assert args.ltr == "GGAGTGAATTAGCCCTTCCA"
         assert args.ltrmax == 1
         assert args.save_all_loci is False

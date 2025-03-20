@@ -2,8 +2,8 @@ import pytest
 import pathlib
 from unittest.mock import patch, MagicMock 
 import gzip
-from Bio import SeqIO, SeqRecord, Seq
-from src.LISseq import _parse_args, _find_fqgz, _parse_fqgz, _find_ltr, _clean_read, _save_clean_reads, _cleanup_reads
+from Bio import SeqRecord, Seq
+from src.LISseq import _find_fqgz, _parse_fqgz, _has_ltr, _clean_read, _save_clean_reads, cleanup_reads
 
 
 class TestFindFqgz:
@@ -78,27 +78,27 @@ class TestFindLTR:
     def test_find_ltr_identification(self):
         read_seq = Seq.Seq("ATCGTACGATCG")
         ltr = "TACG"
-        assert _find_ltr(read_seq, ltr) == True
+        assert _has_ltr(read_seq, ltr) == True
 
     def test_find_ltr_allowed_default_mismatch(self):
         read_seq = Seq.Seq("ATCGTCCGATCG")
         ltr = "TACG"
-        assert _find_ltr(read_seq, ltr) == True
+        assert _has_ltr(read_seq, ltr) == True
 
     def test_find_ltr_allowed_custom_mismatch(self):
         read_seq = Seq.Seq("ATCGTCCGTTCG")
         ltr = "TACGAT"
-        assert _find_ltr(read_seq, ltr, max_mismatches=2) == True
+        assert _has_ltr(read_seq, ltr, max_mismatches=2) == True
 
     def test_find_ltr_absence(self):
         read_seq = Seq.Seq("ATCGTACGATCG")
         ltr = "GGGG"
-        assert _find_ltr(read_seq, ltr) == False
+        assert _has_ltr(read_seq, ltr) == False
 
     def test_find_ltr_short_read_seq(self):
         read_seq = Seq.Seq("ATC")
         ltr = "TACG"
-        assert _find_ltr(read_seq, ltr) == False
+        assert _has_ltr(read_seq, ltr) == False
 
 class TestCleanRead:
     def test_clean_read_removes_ltr_and_truncates_polyA(self):
@@ -199,7 +199,7 @@ class TestCleanupReads:
         args.ltrmax = 1
 
         # Execute
-        result = _cleanup_reads(args)
+        result = cleanup_reads(args)
 
         # Verify
         assert len(result) == 2
@@ -220,7 +220,7 @@ class TestCleanupReads:
         args.l = 30
 
         # Execute
-        result = _cleanup_reads(args)
+        result = cleanup_reads(args)
 
         # Verify
         assert result == {}
@@ -244,7 +244,7 @@ class TestCleanupReads:
         args.l = 30
 
         # Execute
-        result = _cleanup_reads(args)
+        result = cleanup_reads(args)
 
         # Verify
         assert result == {"sample1":{"raw_reads":2,"filtered_reads":0}}
@@ -267,7 +267,7 @@ class TestCleanupReads:
         args.l = 30
 
         # Execute
-        result = _cleanup_reads(args)
+        result = cleanup_reads(args)
 
         # Verify
         assert result == {}
