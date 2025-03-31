@@ -1,6 +1,8 @@
 # LISseq
 Small utility for analyzing LISseq data
 
+[![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC_BY--NC--ND_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+
 Installation:
 1. Download the latest release and unzip to a directory.
 2. Execute `./setup.sh`
