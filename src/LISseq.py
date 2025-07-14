@@ -478,7 +478,7 @@ def format_data_frame(IS_dict: dict) -> pd.DataFrame:
 
 def main(arg_list: list[str] | None = None):
     args = parse_args(arg_list)
-    if pathlib.Path(args.output_dir).exists() == False:
+    if pathlib.Path(f"{args.output_dir}/temp/").exists() == False:
         os.makedirs(f"{args.output_dir}/temp/")
     read_no_dict = cleanup_reads(args)
     print("\nFinished cleaning up reads.")
